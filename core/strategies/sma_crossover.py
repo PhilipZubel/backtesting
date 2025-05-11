@@ -9,7 +9,7 @@ class SMACrossover(Strategy):
         self.short = short
         self.long = long
 
-    def calculate(self, df: pd.DataFrame, start_date: date) -> tuple[pd.DataFrame, dict[str, str]]:
+    def calculate(self, df: pd.DataFrame, start_date: date) -> tuple[pd.DataFrame, dict[str, str], dict]:
         df = df.copy()
         df["SMA_Short"] = df["Close"].rolling(window=self.short).mean()
         df["SMA_Long"] = df["Close"].rolling(window=self.long).mean()
@@ -26,7 +26,7 @@ class SMACrossover(Strategy):
         return df, {
                 f"SMA Short {self.short} Days":  "SMA_Short",
                 f"SMA Long {self.long} Days":  "SMA_Long",
-            }
+            }, {}
 
     def get_required_data_range(self, start_date: date, end_date: date) -> tuple:
         required_start_date = start_date - timedelta(days=self.long)

@@ -2,12 +2,17 @@ import inspect
 
 from .abstract_strategy import Strategy
 from .sma_crossover import SMACrossover
+from .buy_and_hold import BuyAndHold
+from .rsi import RSIStrategy
+from .macd import MACDStrategy
+from .boillinger import BollingerBandsStrategy
 
 STRATEGIES: dict[str, Strategy] = {
     "SMA Crossover": SMACrossover,
-    # "Buy and Hold": buy_and_hold.run,
-    # "RSI Strategy": rsi.run,
-    # "MACD Strategy": macd.run,
+    "Buy and Hold": BuyAndHold,
+    "RSI Strategy": RSIStrategy,
+    "MACD Strategy": MACDStrategy,
+    "Bollinger Bands": BollingerBandsStrategy,
 }
 
 def get_strategy(name: str) -> Strategy:
@@ -23,6 +28,8 @@ def get_strategy_params(strategy_class):
     for name, param in init_signature.parameters.items():
         if name == "self":
             continue  # Skip the 'self' parameter
+        if name == "args" or name == "kwargs":
+            continue
         
         annotation = param.annotation
         default = param.default

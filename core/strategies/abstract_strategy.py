@@ -9,7 +9,7 @@ class Strategy(ABC):
     """
     
     @abstractmethod
-    def calculate(self, df: pd.DataFrame, start_date: date) -> tuple[pd.DataFrame, dict[str, str]]:
+    def calculate(self, df: pd.DataFrame, start_date: date) -> tuple[pd.DataFrame, dict[str, str], dict]:
         """
         Perform the strategy calculation on the given data.
 

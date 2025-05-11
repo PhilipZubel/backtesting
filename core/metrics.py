@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 
-def sharpe_ratio(df, risk_free_rate=0.0433):
+def sharpe_ratio(df, **kwargs):
+    risk_free_rate = kwargs.get("risk_free_rate", 0.0)
     # Initialize variable to track the cumulative return
     total_return = 1.0
     excess_returns = []
@@ -9,7 +10,7 @@ def sharpe_ratio(df, risk_free_rate=0.0433):
     # Track the entry price (buy price)
     entry_price = None
     
-    for i in range(1, len(df)):
+    for i in range(len(df)):
         if df['Position'].iloc[i] == 1:  # Buy signal
             entry_price = df['Close'].iloc[i]
         elif df['Position'].iloc[i] == -1 and entry_price is not None:  # Sell signal
@@ -30,19 +31,20 @@ def sharpe_ratio(df, risk_free_rate=0.0433):
         total_return *= (1 + trade_return)
 
     # Calculate the Sharpe ratio: mean of excess returns / std of excess returns
+    if len(excess_returns) == 1:
+        return 'Cannot compute with only one trade.'
     if len(excess_returns) > 0:
         return np.mean(excess_returns) / np.std(excess_returns) * np.sqrt(252)
-    else:
-        return np.nan
+    return 'No trades executed.'
 
-def max_drawdown(df):
+def max_drawdown(df, **kwargs):
     total_return = 1.0
     cumulative_returns = [1.0]
     
     # Track the entry price (buy price)
     entry_price = None
     
-    for i in range(1, len(df)):
+    for i in range(len(df)):
         if df['Position'].iloc[i] == 1:  # Buy signal
             entry_price = df['Close'].iloc[i]
         elif df['Position'].iloc[i] == -1 and entry_price is not None:  # Sell signal
@@ -67,21 +69,20 @@ def max_drawdown(df):
     drawdown = (cumulative_returns / cumulative_returns.cummax()) - 1
     return drawdown.min()
 
-def calmar_ratio(df, risk_free_rate=0.0433):
-    annualized_return = yearly_return(df) * 100
+def calmar_ratio(df, **kwargs):
+    risk_free_rate = kwargs.get("risk_free_rate", 0.0)
+    annualized_return = yearly_return(df, **kwargs) * 100
     max_dd = max_drawdown(df) * 100
     if max_dd == 0:
         return np.nan  # Avoid division by zero
-    print(annualized_return, risk_free_rate, max_dd)
     return (annualized_return - risk_free_rate * 100) / abs(max_dd)
 
-def total_return(df):
-    
+def total_return(df, **kwargs):
     # Track the entry price (buy price)
     total_return = 1.0
     entry_price = None
     
-    for i in range(1, len(df)):
+    for i in range(len(df)):
         # When the position is 1 (buy), store the entry price
         if df['Position'].iloc[i] == 1:  # Buy signal
             entry_price = df['Close'].iloc[i]
@@ -93,17 +94,19 @@ def total_return(df):
             trade_return = (exit_price - entry_price) / entry_price
             total_return *= (1 + trade_return)
             entry_price = None  # Reset entry price after a trade
-    
+            
     # Ensure we close any open position on the last day
     if entry_price is not None:
         exit_price = df['Close'].iloc[-1]  # Sell at the last available price
         trade_return = (exit_price - entry_price) / entry_price
         total_return *= (1 + trade_return)
-    
-    # Subtract 1 to get total return (since we used cumulative product)
-    return total_return - 1
+    total_return -= 1
 
-def yearly_return(df):
+    return total_return
+
+def yearly_return(df, **kwargs):
+    start_date = kwargs.get("start_date")
+    end_date = kwargs.get("end_date")
     # Compute total return using your function
     total_ret = total_return(df)
 
@@ -112,15 +115,14 @@ def yearly_return(df):
         df['Date'] = pd.to_datetime(df['Date'])
 
     # Compute number of years in the data
-    days = (df['Date'].iloc[-1] - df['Date'].iloc[0]).days + 1
+    days = (end_date - start_date).days
     years = days / 365
 
     if years == 0:
         return np.nan  # Avoid division by zero
 
     # Annualize the return
-    annualized_return = (1 + total_ret) ** (1 / years) - 1
-    return annualized_return
+    return (1 + total_ret) ** (1 / years) - 1
 
 def track_positions(df):
     position_changes = df[df['Position'] != 0]  # Filter to include only non-zero positions
@@ -147,10 +149,19 @@ def track_positions(df):
             
             entry_row = None  # Reset entry_row after completing the trade
     
-    # Convert the list of trades to a DataFrame
-    entry_exit_df = pd.DataFrame(entry_exit_prices)
-    
-    return entry_exit_df
+    if entry_row is not None:
+        # If there's an open position at the end of the DataFrame, close it
+        exit_row = df.iloc[-1]
+        profit = (exit_row['Close'] - entry_row['Close']) * entry_row['Position']
+        
+        entry_exit_prices.append({
+            'Entry Date': entry_row['Date'],
+            'Entry Price': entry_row['Close'],
+            'Exit Date': exit_row['Date'],
+            'Exit Price': exit_row['Close'],
+            'Profit': profit
+        })
+    return pd.DataFrame(entry_exit_prices)
     
 METRICS = {
     'sharpe_ratio': sharpe_ratio,
