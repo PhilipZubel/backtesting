@@ -1,9 +1,10 @@
 def render_strategy_params(params_def):
     import streamlit as st
+
     result = {}
     for name, info in params_def.items():
-        ptype = info['type']
-        default = info['default']
+        ptype = info["type"]
+        default = info["default"]
         if ptype == int:
             result[name] = st.number_input(f"{name}", value=default, step=1)
         elif ptype == float:
