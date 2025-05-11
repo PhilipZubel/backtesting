@@ -4,12 +4,15 @@ from .abstract_strategy import Strategy
 
 class SMACrossover(Strategy):
     def __init__(self, short: int = 10, long: int = 50):
-        if short >= long:
-            raise ValueError("Short period must be smaller than the long period.")
         self.short = short
         self.long = long
 
     def calculate(self, df: pd.DataFrame, start_date: date) -> tuple[pd.DataFrame, dict[str, str], dict]:
+        if self.short >= self.long:
+            raise ValueError("Short period must be smaller than the long period.")
+        if self.short <= 0 or self.long <= 0:
+            raise ValueError("Short and long periods must be positive integers.")
+        
         df = df.copy()
         df["SMA_Short"] = df["Close"].rolling(window=self.short).mean()
         df["SMA_Long"] = df["Close"].rolling(window=self.long).mean()

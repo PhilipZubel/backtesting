@@ -8,6 +8,10 @@ class BollingerBandsStrategy(Strategy):
         self.stddev = stddev
 
     def calculate(self, df: pd.DataFrame, start_date: date) -> tuple[pd.DataFrame, dict[str, str]]:
+        if self.period <= 0:
+            raise ValueError("Period must be a positive integer.")
+        if self.stddev <= 0:
+            raise ValueError("Standard deviation multiplier must be a positive number.")
         df = df.copy()
         df["MA"] = df["Close"].rolling(window=self.period).mean()
         df["STD"] = df["Close"].rolling(window=self.period).std()

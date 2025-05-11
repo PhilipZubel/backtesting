@@ -11,6 +11,8 @@ class RSIStrategy(Strategy):
     def calculate(self, df: pd.DataFrame, start_date: date) -> tuple[pd.DataFrame, dict[str, str], dict]:
         if not (0 < self.lower < self.upper < 100):
             raise ValueError("Lower and upper bounds must be between 0 and 100, with lower < upper.")
+        if self.period <= 0:
+            raise ValueError("Period must be a positive integer.")
         
         df = df.copy()
         delta = df["Close"].diff()

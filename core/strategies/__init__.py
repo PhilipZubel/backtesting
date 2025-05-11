@@ -6,6 +6,7 @@ from .buy_and_hold import BuyAndHold
 from .rsi import RSIStrategy
 from .macd import MACDStrategy
 from .boillinger import BollingerBandsStrategy
+from .parabolic_sar import ParabolicSARStrategy
 
 STRATEGIES: dict[str, Strategy] = {
     "SMA Crossover": SMACrossover,
@@ -13,6 +14,7 @@ STRATEGIES: dict[str, Strategy] = {
     "RSI Strategy": RSIStrategy,
     "MACD Strategy": MACDStrategy,
     "Bollinger Bands": BollingerBandsStrategy,
+    "Parabolic SAR": ParabolicSARStrategy,
 }
 
 def get_strategy(name: str) -> Strategy:

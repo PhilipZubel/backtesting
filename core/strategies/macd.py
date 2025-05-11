@@ -12,6 +12,8 @@ class MACDStrategy(Strategy):
         
         if self.fast >= self.slow:
             raise ValueError("Fast period must be less than slow period.")
+        if self.fast <= 0 or self.slow <= 0 or self.signal <= 0:
+            raise ValueError("Fast, slow, and signal periods must be positive integers.")
         
         df = df.copy()
         # Calculate MACD line and signal line

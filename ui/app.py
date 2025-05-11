@@ -25,16 +25,19 @@ be.end_date = col2.date_input("Select End Date", value=today)
 be.strategy_name = st.selectbox("Select a Strategy", be.get_strategies())
 strategy_params = render_strategy_params(be.get_strategy_params())
 
-if st.button("Backtest"):
-    df, plot_lines, subplot_lines = run_backtest_with_inputs(be, be.strategy_name, strategy_params)
-    st.success("Backtest completed successfully!")
-    st.write("Results:", df)
-    st.session_state.update({
-        'backtest_df': df,
-        'plot_lines': plot_lines,
-        'subplot_lines': subplot_lines,
-        'backtest_run': True
-    })
+try:
+    if st.button("Backtest"):
+        df, plot_lines, subplot_lines = run_backtest_with_inputs(be, be.strategy_name, strategy_params)
+        st.success("Backtest completed successfully!")
+        st.write("Results:", df)
+        st.session_state.update({
+            'backtest_df': df,
+            'plot_lines': plot_lines,
+            'subplot_lines': subplot_lines,
+            'backtest_run': True
+        })
+except ValueError as e:
+    st.error(f"Error: {e}")
 
 if st.session_state.get("backtest_run"):
     df = st.session_state['backtest_df']
